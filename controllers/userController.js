@@ -1,5 +1,24 @@
 const User = require("../models/user");
 const bcrypt = require("bcrypt");
+const generateToken = require("../utils/generateToken");
+
+const authUser = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+    const isMatch = user && (await bcrypt.compare(password, user.password));
+    if (user && isMatch) {
+      res.json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        token: generateToken(user._id),
+      });
+    } else {
+      return res.status(401).json("invalid eamil or password");
+    }
+  } catch (error) {}
+};
 const createuser = async (req, res) => {
   try {
     const user = new User(req.body);
@@ -52,13 +71,17 @@ const deleteUser = async (req, res) => {
 const updateUser = async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
-    const { email, name, phone } = req.body;
+    const { email, name, phone, password } = req.body;
 
     console.log("user", user);
     if (user) {
       user.name = name || user.name;
       user.email = email || user.email;
       user.phone = phone || user.phone;
+
+      if (password) {
+        user.password = await bcrypt.hash(password, 10);
+      }
       const updateUser = await user.save();
       res.json({
         updateUser,
@@ -78,4 +101,5 @@ module.exports = {
   getUser,
   deleteUser,
   updateUser,
+  authUser,
 };
