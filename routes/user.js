@@ -13,7 +13,7 @@ const protect = require("../middlewares/authMiddleware");
 const router = express.Router();
 
 router.post("/add", uservalidator, validate, createuser);
-router.get("/all", protect, getUsers);
+router.get("/all", getUsers);
 router.get("/:id", getUser);
 router.delete("/:id", deleteUser);
 router.patch("/:id", updateUser);
